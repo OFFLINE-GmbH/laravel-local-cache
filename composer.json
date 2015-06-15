@@ -1,0 +1,24 @@
+{
+  "name": "offline/laravel-offline-cache",
+  "description": "Cache remote files locally in Laravel",
+  "require": {
+    "php": ">=5.3.0",
+    "illuminate/support": "~5.0"
+  },
+  "require-dev": {
+    "phpspec/phpspec": "~2.0",
+    "mikey179/vfsStream": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "Offline\\LocalCache\\": "src/Offline/LocalCache"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tobias Kündig",
+      "email": "tobias.kuendig@offlinegmbh.ch"
+    }
+  ]
+}
