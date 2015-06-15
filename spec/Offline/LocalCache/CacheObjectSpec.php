@@ -5,6 +5,7 @@ namespace spec\Offline\LocalCache;
 use Offline\LocalCache\ValueObjects\Ttl;
 use Offline\LocalCache\ValueObjects\Url;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamWrapper;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -14,6 +15,7 @@ class CacheObjectSpec extends ObjectBehavior
     private $ttl;
 
     const validUrl = 'http://www.offlinegmbh.ch/valid.jpg';
+    const localhost = 'http://localhost/index.html';
 
     function __construct()
     {
@@ -55,5 +57,46 @@ class CacheObjectSpec extends ObjectBehavior
     function it_returns_its_cache_path()
     {
         $this->getCachePath()->shouldReturn('vfs://chachePath/' . $this->url->toHash());
+    }
+
+    function it_caches_a_file()
+    {
+        $localUrl = new Url(self::localhost);
+
+        $this->beConstructedWith($localUrl, $this->ttl, vfsStream::url('cachePath'));
+
+        $this->store()->shouldReturn($localUrl->toHash());
+
+        $this->shouldHaveCreatedTheFile($localUrl->toHash());
+    }
+
+    function it_removes_an_old_file()
+    {
+        $localUrl = new Url(self::localhost);
+
+        $this->beConstructedWith($localUrl, new Ttl(0), vfsStream::url('cachePath'));
+
+        $this->store()->shouldReturn($localUrl->toHash());
+
+        $this->shouldHaveCreatedTheFile($localUrl->toHash());
+
+        sleep(1);
+
+        $this->isCached()->shouldReturn(false);
+
+        $this->shouldHaveRemovedTheFile($localUrl->toHash());
+
+    }
+
+    public function getMatchers()
+    {
+        return [
+            'haveCreatedTheFile' => function ($actual, $file) {
+                return VfsStreamWrapper::getRoot()->hasChild($file);
+            },
+            'haveRemovedTheFile' => function ($actual, $file) {
+                return ! VfsStreamWrapper::getRoot()->hasChild($file);
+            },
+        ];
     }
 }

@@ -31,11 +31,12 @@ class OfflineCacheServiceProvider extends ServiceProvider
     {
         $this->app['LocalCache'] = $this->app->share(function ($app) {
             $config = $app->config->get('localcache', [
+                'base_url'     => $app['url']->to('/'),
                 'storage_path' => storage_path('localcache'),
                 'ttl'          => 20,
             ]);
 
-            $ttl    = new Ttl($config['ttl']);
+            $ttl = new Ttl($config['ttl']);
 
             return new LocalCache($config['storage_path'], $ttl);
         });
