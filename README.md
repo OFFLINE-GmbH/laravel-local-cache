@@ -3,7 +3,7 @@
 .org/OFFLINE-GmbH/laravel-local-cache)
 
 This package allows you to cache remote files in the local filesystem. This is useful if you try
-to reduce bandwidth consumptions when requesting files from services like Amazon S3. 
+to reduce bandwidth consumption when requesting files from services like Amazon S3. 
 
 The implementation also enables you to serve files from cache that may not be available at
 their remote location at times.
