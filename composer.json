@@ -3,7 +3,8 @@
   "description": "Cache remote files locally in Laravel",
   "require": {
     "php": ">=5.4.0",
-    "illuminate/support": "~5.0"
+    "illuminate/support": "~5.0",
+    "ext-curl": "*"
   },
   "require-dev": {
     "phpspec/phpspec": "~2.0",
