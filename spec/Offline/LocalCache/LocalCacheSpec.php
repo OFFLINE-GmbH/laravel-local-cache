@@ -19,16 +19,16 @@ class LocalCacheSpec extends ObjectBehavior
 </html>
 STR;
 
-    private $localContentString = <<<STR
+    private $validContentString = <<<STR
 <html>
-<p>http://localhost/index.html</p>
-<div>http://localhost/</div>
+<p>http://en.wikipedia.org/w/api.php?action=query&titles=Albert%20Einstein&prop=info&format=json&callback=foo</p>
+<div>http://de.wikipedia.org/w/api.php?action=query&titles=Albert%20Einstein&prop=info&format=json&callback=foo</div>
 </html>
 STR;
-    private $replacedLocalContentString = <<<STR
+    private $replacedValidContentString = <<<STR
 <html>
-<p>http://url/758bcef4c2262091eca810a6022c73c1</p>
-<div>http://url/c9db569cb388e160e4b86ca1ddff84d7</div>
+<p>http://url/8bdc0b28c0e072fc090330c2e8124d9b</p>
+<div>http://url/788cf50ad87e3c43a1ffe27ed4b42b06</div>
 </html>
 STR;
 
@@ -54,7 +54,7 @@ STR;
     function it_replaces_urls()
     {
         $this->beConstructedWith($this->tmp, 'http://url', new Ttl(20));
-        $this->getCachedHtml($this->localContentString)->shouldReturn($this->replacedLocalContentString);
+        $this->getCachedHtml($this->validContentString)->shouldReturn($this->replacedValidContentString);
         $this->flush();
     }
 
