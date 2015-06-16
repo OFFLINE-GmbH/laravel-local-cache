@@ -3,14 +3,13 @@
 namespace spec\Offline\LocalCache;
 
 use Offline\LocalCache\ValueObjects\Ttl;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamWrapper;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class LocalCacheSpec extends ObjectBehavior
 {
     const baseUrl = 'http://localhost';
+    private $tmp;
 
     private $contentString = <<<STR
 <html>
@@ -33,10 +32,14 @@ STR;
 </html>
 STR;
 
+    function __construct()
+    {
+        $this->tmp = realpath(__DIR__ . '/../../tmp');
+    }
+
     function let()
     {
-        vfsStream::setup('cachePath');
-        $this->beConstructedWith(vfsStream::url('chachePath'), self::baseUrl, new Ttl(20));
+        $this->beConstructedWith($this->tmp, self::baseUrl, new Ttl(20));
     }
 
     function it_is_initializable()
@@ -44,14 +47,9 @@ STR;
         $this->shouldHaveType('Offline\LocalCache\LocalCache');
     }
 
-    function it_extracts_urls()
-    {
-        $this->extractUrls($this->contentString)->shouldHaveCount(3);
-    }
-
     function it_replaces_urls()
     {
-        $this->beConstructedWith(__DIR__, 'http://url', new Ttl(20));
+        $this->beConstructedWith($this->tmp, 'http://url', new Ttl(20));
         $this->getCachedHtml($this->localContentString)->shouldReturn($this->replacedLocalContentString);
         $this->flush();
     }
@@ -60,7 +58,7 @@ STR;
     {
         return [
             'haveDeletedOldCacheObjects' => function ($actual, $file) {
-                return VfsStreamWrapper::getRoot()->hasChild($file);
+                return file_exists($this->tmp . '/' . $file);
             },
         ];
     }

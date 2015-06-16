@@ -5,8 +5,6 @@ namespace Offline\LocalCache;
 
 use Offline\LocalCache\ValueObjects\Ttl;
 use Offline\LocalCache\ValueObjects\Url;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamWrapper;
 
 class CacheObject
 {
@@ -31,9 +29,38 @@ class CacheObject
     public function __construct(Url $url, Ttl $ttl, $basePath)
     {
         $this->url      = $url;
-        $this->basePath = rtrim($basePath, '/');
         $this->ttl      = $ttl;
+        $this->basePath = rtrim($basePath, '/');
+
+        $this->store();
     }
+
+    /**
+     * Stores a file in the filesystem.
+     *
+     * @return string
+     */
+    public function store()
+    {
+        if ($this->isCached()) {
+            return $this->url->toHash();
+        }
+
+        file_put_contents($this->getCachePath(), $this->getRemoteContents());
+
+        return $this->url->toHash();
+    }
+
+    /**
+     * Removes a file from the filesystem.
+     *
+     * @return string
+     */
+    public function remove()
+    {
+        @unlink($this->getCachePath());
+    }
+
 
     /**
      * Checks if the CacheObject is cached.
@@ -43,6 +70,16 @@ class CacheObject
     public function isCached()
     {
         return file_exists($this->getCachePath()) && $this->isValid();
+    }
+
+    /**
+     * Returns the cached file contents.
+     *
+     * @return string
+     */
+    public function getContents()
+    {
+        return file_get_contents($this->getCachePath());
     }
 
     /**
@@ -63,8 +100,8 @@ class CacheObject
     private function isValid()
     {
         // TTL has expired
-        if (time() - filemtime($this->getCachePath()) > $this->ttl->inSeconds()) {
-            @unlink($this->getCachePath());
+        if (time() - filemtime($this->getCachePath()) >= $this->ttl->inSeconds()) {
+            $this->remove();
 
             return false;
         }
@@ -72,36 +109,9 @@ class CacheObject
         return true;
     }
 
-    /**
-     * Stores a file in the filesystem.
-     *
-     * @return string
-     */
-    public function store()
+    private function getRemoteContents()
     {
-        file_put_contents($this->getCachePath(), $this->getRemoteContents());
-
-        return $this->url->toHash();
-    }
-
-    /**
-     * Removes a file from the filesystem.
-     *
-     * @return string
-     */
-    public function remove()
-    {
-        @unlink($this->getCachePath());
-    }
-
-    public function getRemoteContents()
-    {
-        return file_get_contents($this->url);
-    }
-
-    public function getLocalContents()
-    {
-        return file_get_contents($this->getCachePath());
+        return file_get_contents((string)$this->url);
     }
 
     public function __toString()
