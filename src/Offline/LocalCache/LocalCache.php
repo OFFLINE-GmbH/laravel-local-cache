@@ -1,5 +1,6 @@
 <?php namespace Offline\LocalCache;
 
+use InvalidArgumentException;
 use Offline\LocalCache\ValueObjects\Ttl;
 use Offline\LocalCache\ValueObjects\Url;
 
