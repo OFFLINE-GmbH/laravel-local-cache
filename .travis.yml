@@ -15,4 +15,4 @@ before_script:
  - chmod 777 spec/tmp
 
 script:
-- ./vendor/bin/phpspec run --format=pretty
+- ./vendor/bin/phpspec run --format=pretty --verbose

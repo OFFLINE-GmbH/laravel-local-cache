@@ -21,9 +21,9 @@ class CacheObjectSpec extends ObjectBehavior
         $this->url = new Url(self::validUrl);
         $this->ttl = new Ttl(20);
         if (getenv('TRAVIS') == true) {
-            $this->tmp = realpath(__DIR__ . '/../../tmp');
-        } else {
             $this->tmp = getenv('TRAVIS_BUILD_DIR') . '/spec/tmp';
+        } else {
+            $this->tmp = realpath(__DIR__ . '/../../tmp');
         }
     }
 
