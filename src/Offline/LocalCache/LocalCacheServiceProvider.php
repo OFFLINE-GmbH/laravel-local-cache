@@ -7,14 +7,16 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Offline\LocalCache\ValueObjects\Ttl;
 
+/**
+ * Class LocalCacheServiceProvider
+ * @package Offline\LocalCache
+ */
 class LocalCacheServiceProvider extends ServiceProvider
 {
     /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
+     * @var MimeMap
      */
-    protected $defer = false;
+    protected $mimeMap;
 
     /**
      * Bootstrap the application events.
@@ -36,29 +38,46 @@ class LocalCacheServiceProvider extends ServiceProvider
         $this->app['LocalCache'] = $this->app->share(function ($app) {
 
             $config = $app->config->get('localcache', [
-                'base_url'     => $app['url']->to('/'),
                 'route'        => 'cache',
+                'base_url'     => $app['url']->to('/'),
                 'storage_path' => storage_path('localcache'),
-                'ttl'          => 20,
+                'ttl'          => 3600,
             ]);
 
             $ttl = new Ttl($config['ttl']);
 
             return new LocalCache($config['storage_path'], $config['base_url'] . '/' . $config['route'], $ttl);
+
         });
     }
 
+    /**
+     * Routes
+     */
     private function defineRoutes()
     {
         if ( ! $this->app->routesAreCached()) {
-
             $route   = $this->app->config->get('localcache.route', 'cache');
-            $storage = $this->app->config->get('localcache.storage_path', storage_path('localcache'));
+            $storage = $this->app['LocalCache']->getCachePath();
 
+            $this->mimeMap = MimeMap::readMapFile($storage . '/mimeMap.json');
             Route::get('/' . $route . '/{hash}', function ($hash) use ($storage) {
-                return (new Response(file_get_contents($storage . '/' . $hash), 200))->header('Content-Type', 'text/css');
+                return (
+                new Response(
+                    file_get_contents($storage . '/' . $hash)
+                    , 200)
+                )->header('Content-Type', $this->getMime($hash));
             });
-
         }
+    }
+
+    /**
+     * @param $hash
+     *
+     * @return string
+     */
+    private function getMime($hash)
+    {
+        return array_key_exists($hash, $this->mimeMap) ? $this->mimeMap[$hash] : 'application/octet-stream';
     }
 }

@@ -50,7 +50,7 @@ class CacheObjectSpec extends ObjectBehavior
     function it_invalidates_cached_file_that_does_exist()
     {
         $this->beConstructedWith(new Url(self::validUrl . '/valid'), new Ttl(0), $this->tmp);
-        $this->isCached()->shouldReturn(false);
+        $this->isValid()->shouldReturn(false);
     }
 
     function it_validates_cached_file()
@@ -70,7 +70,9 @@ class CacheObjectSpec extends ObjectBehavior
 
         $this->beConstructedWith($localUrl, $this->ttl, $this->tmp);
 
-        $this->store()->shouldReturn($localUrl->toHash());
+        $this->remove();
+
+        $this->store('abc')->shouldReturn($localUrl->toHash());
 
         $this->shouldHaveCreatedTheFile($localUrl->toHash());
     }
@@ -81,11 +83,11 @@ class CacheObjectSpec extends ObjectBehavior
 
         $this->beConstructedWith($localUrl, new Ttl(0), $this->tmp);
 
-        $this->store()->shouldReturn($localUrl->toHash());
+        $this->store('abc')->shouldReturn($localUrl->toHash());
 
         $this->shouldHaveCreatedTheFile($localUrl->toHash());
 
-        $this->isCached()->shouldReturn(false);
+        $this->isValid()->shouldReturn(false);
 
         $this->shouldHaveRemovedTheFile($localUrl->toHash());
 

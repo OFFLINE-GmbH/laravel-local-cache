@@ -49,6 +49,26 @@ class LocalCache
     }
 
     /**
+     * Returns the CachePath.
+     *
+     * @return array
+     */
+    public function getCachePath()
+    {
+        return $this->cachePath;
+    }
+
+    /**
+     * Returns the BaseUrl.
+     *
+     * @return array
+     */
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
+
+    /**
      * Adds a url to the cache.
      *
      * @param string $url
@@ -71,6 +91,11 @@ class LocalCache
             return $url;
         }
 
+        // External URL, contains a slash
+        if (strpos((string)$this->cacheObjects[$url], '/') !== false) {
+            return $this->cacheObjects[$url];
+        }
+
         return (string)$this->baseUrl . '/' . $this->cacheObjects[$url];
     }
 
@@ -90,6 +115,9 @@ class LocalCache
         return $html;
     }
 
+    /**
+     * Remove the currently active CacheObjects from disk.
+     */
     public function flush()
     {
         foreach ($this->cacheObjects as $object) {
@@ -111,10 +139,18 @@ class LocalCache
         foreach ($matches[0] as $url) {
             $this->addUrl($url);
         }
+
         return $this->cacheObjects;
     }
 
 
+    /**
+     * Replaces URLs in a string.
+     *
+     * @param $html
+     *
+     * @return mixed
+     */
     private function replaceUrls($html)
     {
         preg_match_all('/https?\:\/\/[^\"\<]+/i', $html, $matches);

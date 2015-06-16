@@ -2,10 +2,13 @@
 
 namespace Offline\LocalCache;
 
-
 use Offline\LocalCache\ValueObjects\Ttl;
 use Offline\LocalCache\ValueObjects\Url;
 
+/**
+ * Class CacheObject
+ * @package Offline\LocalCache
+ */
 class CacheObject
 {
     /**
@@ -25,30 +28,67 @@ class CacheObject
      * @var Ttl
      */
     protected $ttl;
+    /**
+     * URL to Object
+     *
+     * @var Ttl
+     */
+    protected $objectUrl;
 
+    /**
+     * @param Url $url
+     * @param Ttl $ttl
+     * @param     $basePath
+     */
     public function __construct(Url $url, Ttl $ttl, $basePath)
     {
         $this->url      = $url;
         $this->ttl      = $ttl;
         $this->basePath = rtrim($basePath, '/');
 
-        $this->store();
+        $this->download();
     }
 
     /**
      * Stores a file in the filesystem.
      *
+     * @param $data
+     *
      * @return string
      */
-    public function store()
+    public function store($data)
     {
-        if ($this->isCached()) {
-            return $this->url->toHash();
+        if ($this->isValid()) {
+            return;
         }
 
-        file_put_contents($this->getCachePath(), $this->getRemoteContents());
+        file_put_contents($this->getCachePath(), $data);
+
+        MimeMap::storeToMap($this->basePath . '/mimeMap.json', $this->url);
 
         return $this->url->toHash();
+    }
+
+    /**
+     * Downloads the remote file and stores if necessary.
+     *
+     * @return bool
+     */
+    private function download()
+    {
+        list($data, $status) = $this->makeCurlRequest();
+
+        $this->objectUrl = $this->url->toHash();
+
+        if ($status === true) {
+            $this->store($data);
+
+            return true;
+        }
+
+        if ( ! $this->isCached()) {
+            $this->objectUrl = (string)$this->url;
+        }
     }
 
     /**
@@ -69,7 +109,7 @@ class CacheObject
      */
     public function isCached()
     {
-        return file_exists($this->getCachePath()) && $this->isValid();
+        return file_exists($this->getCachePath());
     }
 
     /**
@@ -97,8 +137,12 @@ class CacheObject
      *
      * @return bool
      */
-    private function isValid()
+    public function isValid()
     {
+        if ( ! $this->isCached()) {
+            return false;
+        }
+
         // TTL has expired
         if (time() - filemtime($this->getCachePath()) >= $this->ttl->inSeconds()) {
             $this->remove();
@@ -109,13 +153,37 @@ class CacheObject
         return true;
     }
 
-    private function getRemoteContents()
+    /**
+     * Makes a curl request and downloads the contents
+     * of the remote file.
+     *
+     * @return array
+     */
+    private function makeCurlRequest()
     {
-        return file_get_contents((string)$this->url);
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+
+        $data     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close($ch);
+
+        $status = ($httpCode >= 200 && $httpCode < 400);
+
+        return [$data, $status];
     }
 
+
+    /**
+     * @return string
+     */
     public function __toString()
     {
-        return $this->isCached() ? (string)$this->url->toHash() : (string)$this->url;
+        return (string)$this->objectUrl;
     }
+
 }

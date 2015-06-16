@@ -26,6 +26,7 @@ class UrlSpec extends ObjectBehavior
         $this->shouldThrow(new InvalidArgumentException(self::invalidURL . ' is not a valid url'))
              ->during('__construct', [self::invalidURL]);
     }
+
     function it_returns_a_hash()
     {
         $this->toHash()->shouldReturn(md5(static::validURL));
