@@ -35,17 +35,18 @@ this location).
 ## Use it
 
 To cache a file use the `getCachedHtml` method. The file will be downloaded and stored to disk.
-The method returns the local url for your file.
+The method returns the local URL for your file.
     
     $string = 'http://www.offlinegmbh.ch/file.jpg';
     
     // returns http://yoursite/cache/{hash}
     var_dump(LocalCache::getCachedHtml($string));
     
-By default, a `/cache/{hash}` route is generated which serves the files contents with the correct mime type.
+By default, a `/cache/{hash}` route is generated which serves the file's contents with the correct mime type.
 To change the route, edit the `route` setting in `config/localcache.php`.
 
-The `getCachedHtml` method works with any string that contains URLs. It extracts and replaces the links accordingly.
+The `getCachedHtml` method works with any string that contains any number of URLs. It extracts and replaces the links 
+accordingly.
 
     $string = '<p>http://www.offlinegmbh.ch/file.jpg</p><p>http://www.offlinegmbh.ch/file2.jpg</p>';
     
@@ -56,7 +57,6 @@ The `getCachedHtml` method works with any string that contains URLs. It extracts
 
 This example middleware caches all external files referenced in your template and replaces 
 the URLs.
-
 
     <?php
     
