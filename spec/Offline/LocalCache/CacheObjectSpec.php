@@ -23,7 +23,7 @@ class CacheObjectSpec extends ObjectBehavior
         if (getenv('TRAVIS') == true) {
             $this->tmp = realpath(__DIR__ . '/../../tmp');
         } else {
-            $this->tmp = getenv('TRAVIS_BUILD_DIR') . '/tmp';
+            $this->tmp = getenv('TRAVIS_BUILD_DIR') . '/spec/tmp';
         }
     }
 
