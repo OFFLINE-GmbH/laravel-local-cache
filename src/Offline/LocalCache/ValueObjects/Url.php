@@ -4,10 +4,22 @@ namespace Offline\LocalCache\ValueObjects;
 
 use InvalidArgumentException;
 
+/**
+ * Class Url
+ * @package Offline\LocalCache\ValueObjects
+ */
 class Url
 {
+    /**
+     * URL.
+     *
+     * @var string
+     */
     protected $url;
 
+    /**
+     * @param $url
+     */
     public function __construct($url)
     {
         if ( ! filter_var($url, FILTER_VALIDATE_URL)) {
@@ -16,11 +28,20 @@ class Url
         $this->url = $url;
     }
 
+
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return (string)$this->url;
     }
 
+    /**
+     * Return the hashed URL.
+     *
+     * @return string
+     */
     public function toHash()
     {
         return md5($this->url);
