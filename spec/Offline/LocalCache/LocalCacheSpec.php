@@ -34,7 +34,11 @@ STR;
 
     function __construct()
     {
-        $this->tmp = realpath(__DIR__ . '/../../tmp');
+        if(getenv('TRAVIS') == true) {
+            $this->tmp = realpath(__DIR__ . '/../../tmp');
+        } else {
+            $this->tmp = getenv('TRAVIS_BUILD_DIR') . '/tmp';
+        }
     }
 
     function let()

@@ -12,7 +12,11 @@ class MimeMapSpec extends ObjectBehavior
 
     public function __construct()
     {
-        $this->mapFile = realpath(__DIR__ . '/../../tmp') . '/mimeMap.json';
+        if (getenv('TRAVIS') == true) {
+            $this->mapFile = realpath(__DIR__ . '/../../tmp') . '/mimeMap.json';
+        } else {
+            $this->mapFile = getenv('TRAVIS_BUILD_DIR') . '/tmp/mimeMap.json';
+        }
     }
 
     function let()
