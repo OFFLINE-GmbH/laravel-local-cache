@@ -37,7 +37,7 @@ STR;
         if(getenv('TRAVIS') == true) {
             $this->tmp = getenv('TRAVIS_BUILD_DIR') . '/spec/tmp';
         } else {
-            $this->tmp = realpath(__DIR__ . '/../../tmp');
+            $this->tmp = realpath(__DIR__ . '/../..') . '/tmp';
         }
     }
 
