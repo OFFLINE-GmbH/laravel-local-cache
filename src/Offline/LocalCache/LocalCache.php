@@ -41,8 +41,8 @@ class LocalCache
      */
     public function __construct($cachePath, $baseUrl, Ttl $ttl)
     {
-        if ( ! is_dir($cachePath) || ! is_writable($cachePath)) {
-            throw new InvalidArgumentException("${cachePath} is not writeable!");
+        if ( ! $this->checkCachePath($cachePath)) {
+            throw new InvalidArgumentException("${cachePath} does not exist and cannot be created!");
         }
         $this->cachePath = $cachePath;
         $this->ttl       = $ttl;
@@ -160,6 +160,20 @@ class LocalCache
         }
 
         return $html;
+    }
+
+    /**
+     * @param $cachePath
+     *
+     * @return bool
+     */
+    private function checkCachePath($cachePath)
+    {
+        if(is_dir($cachePath) && is_writable($cachePath)) {
+            return true;
+        }
+
+        return @mkdir($cachePath);
     }
 
 }
