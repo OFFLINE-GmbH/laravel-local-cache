@@ -34,6 +34,12 @@ class LocalCache
      * @var array
      */
     protected $cacheObjects = [];
+    /**
+     * RegEx to extract URLs
+     *
+     * @var string
+     */
+    protected $urlRegEx = '/https?\:\/\/[^\"\'\<]+/i';
 
 
     /**
@@ -135,7 +141,7 @@ class LocalCache
      */
     private function extractUrls($html)
     {
-        preg_match_all('/https?\:\/\/[^\"\<]+/i', $html, $matches);
+        preg_match_all($this->urlRegEx, $html, $matches);
 
         foreach ($matches[0] as $url) {
             $this->addUrl($url);
@@ -154,7 +160,7 @@ class LocalCache
      */
     private function replaceUrls($html)
     {
-        preg_match_all('/https?\:\/\/[^\"\<]+/i', $html, $matches);
+        preg_match_all($this->urlRegEx, $html, $matches);
         foreach ($matches[0] as $url) {
             $html = str_replace($url, $this->getUrl($url), $html);
         }
