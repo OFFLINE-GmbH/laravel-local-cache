@@ -38,15 +38,21 @@ class LocalCacheServiceProvider extends ServiceProvider
         $this->app['LocalCache'] = $this->app->share(function ($app) {
 
             $config = $app->config->get('localcache', [
-                'route'        => 'cache',
-                'base_url'     => $app['url']->to('/'),
-                'storage_path' => storage_path('localcache'),
-                'ttl'          => 3600,
+                'route'         => 'cache',
+                'base_url'      => $app['url']->to('/'),
+                'storage_path'  => storage_path('localcache'),
+                'ttl'           => 3600,
+                'max_file_size' => 1310720,
             ]);
 
             $ttl = new Ttl($config['ttl']);
 
-            return new LocalCache($config['storage_path'], $config['base_url'] . '/' . $config['route'], $ttl);
+            return new LocalCache(
+                $config['storage_path'],
+                $config['base_url'] . '/' . $config['route'],
+                $ttl,
+                $config['max_file_size']
+            );
 
         });
     }
