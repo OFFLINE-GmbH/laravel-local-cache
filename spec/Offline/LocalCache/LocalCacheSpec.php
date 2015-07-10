@@ -43,7 +43,7 @@ STR;
 
     function let()
     {
-        $this->beConstructedWith($this->tmp, self::baseUrl, new Ttl(20));
+        $this->beConstructedWith($this->tmp, self::baseUrl, new Ttl(20), 3600);
     }
 
     function it_is_initializable()
@@ -53,7 +53,7 @@ STR;
 
     function it_replaces_urls()
     {
-        $this->beConstructedWith($this->tmp, 'http://url', new Ttl(20));
+        $this->beConstructedWith($this->tmp, 'http://url', new Ttl(20), 3600);
         $this->getCachedHtml($this->validContentString)->shouldReturn($this->replacedValidContentString);
         $this->flush();
     }
