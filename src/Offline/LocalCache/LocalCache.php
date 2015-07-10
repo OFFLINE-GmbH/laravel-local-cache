@@ -40,19 +40,34 @@ class LocalCache
      * @var string
      */
     protected $urlRegEx = '/https?\:\/\/[^\"\'\<]+/i';
+    /**
+     * Maximum file size.
+     *
+     * @var int
+     */
+    private $maxFileSize;
 
 
     /**
      * Constructor
+     *
+     * @param     $cachePath
+     * @param     $baseUrl
+     * @param Ttl $ttl
+     * @param     $maxFileSize
      */
-    public function __construct($cachePath, $baseUrl, Ttl $ttl)
+    public function __construct($cachePath, $baseUrl, Ttl $ttl, $maxFileSize)
     {
         if ( ! $this->checkCachePath($cachePath)) {
             throw new InvalidArgumentException("${cachePath} does not exist and cannot be created!");
         }
-        $this->cachePath = $cachePath;
-        $this->ttl       = $ttl;
-        $this->baseUrl   = $baseUrl;
+
+        $this->cachePath   = $cachePath;
+        $this->ttl         = $ttl;
+        $this->baseUrl     = $baseUrl;
+        $this->maxFileSize = $maxFileSize;
+
+        $this->cleanUp();
     }
 
     /**
@@ -82,7 +97,7 @@ class LocalCache
      */
     public function addUrl($url)
     {
-        $this->cacheObjects[$url] = new CacheObject(new Url($url), $this->ttl, $this->cachePath);
+        $this->cacheObjects[$url] = new CacheObject(new Url($url), $this->ttl, $this->cachePath, $this->maxFileSize);
     }
 
     /**
@@ -133,6 +148,21 @@ class LocalCache
     }
 
     /**
+     * Remove invalid cache objects.
+     */
+    private function cleanUp()
+    {
+        foreach (glob($this->getCachePath() . '/*') as $file) {
+
+            if(strpos('mimeMap.json', $file) !== false) continue;
+
+            if (time() - filemtime($file) >= $this->ttl->inSeconds()) {
+                @unlink($file);
+            }
+        }
+    }
+
+    /**
      * Extracts URLs from a string
      *
      * @param $html
@@ -175,7 +205,7 @@ class LocalCache
      */
     private function checkCachePath($cachePath)
     {
-        if(is_dir($cachePath) && is_writable($cachePath)) {
+        if (is_dir($cachePath) && is_writable($cachePath)) {
             return true;
         }
 
