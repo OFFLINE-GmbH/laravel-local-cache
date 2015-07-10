@@ -34,17 +34,25 @@ class CacheObject
      * @var Ttl
      */
     protected $objectUrl;
+    /**
+     * Maximum file size.
+     *
+     * @var int
+     */
+    private $maxFileSize;
 
     /**
      * @param Url $url
      * @param Ttl $ttl
      * @param     $basePath
+     * @param     $maxFileSize
      */
-    public function __construct(Url $url, Ttl $ttl, $basePath)
+    public function __construct(Url $url, Ttl $ttl, $basePath, $maxFileSize)
     {
         $this->url      = $url;
         $this->ttl      = $ttl;
         $this->basePath = rtrim($basePath, '/');
+        $this->maxFileSize = $maxFileSize;
 
         $this->download();
     }
@@ -76,7 +84,7 @@ class CacheObject
      */
     private function download()
     {
-        list($data, $status) = $this->makeCurlRequest();
+        list($data, $status) = $this->downloadRemoteFile();
 
         $this->objectUrl = $this->url->toHash();
 
@@ -159,12 +167,16 @@ class CacheObject
      *
      * @return array
      */
-    private function makeCurlRequest()
+    private function downloadRemoteFile()
     {
+        if ($this->getRemoteFileSize($this->url) > $this->maxFileSize) {
+            return [null, false];
+        }
+
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_URL, $this->url);
 
         $data     = curl_exec($ch);
@@ -175,6 +187,50 @@ class CacheObject
         $status = ($httpCode >= 200 && $httpCode < 400);
 
         return [$data, $status];
+    }
+
+    /**
+     * Returns the size of a file without downloading it, or -1 if the file
+     * size could not be determined.
+     *
+     * @param $url
+     *
+     * @return int
+     */
+    function getRemoteFileSize($url)
+    {
+
+        $result = -1;
+
+        $curl = curl_init($url);
+
+        // Issue a HEAD request and follow any redirects.
+        curl_setopt($curl, CURLOPT_NOBODY, true);
+        curl_setopt($curl, CURLOPT_HEADER, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+        $data = curl_exec($curl);
+        curl_close($curl);
+
+        if ($data) {
+            $content_length = "unknown";
+            $status         = "unknown";
+
+            if (preg_match("/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches)) {
+                $status = (int)$matches[1];
+            }
+
+            if (preg_match("/Content-Length: (\d+)/", $data, $matches)) {
+                $content_length = (int)$matches[1];
+            }
+
+            if ($status == 200 || ($status > 300 && $status <= 308)) {
+                $result = $content_length;
+            }
+        }
+
+        return $result;
     }
 
 
