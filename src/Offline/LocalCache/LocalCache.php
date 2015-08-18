@@ -39,7 +39,7 @@ class LocalCache
      *
      * @var string
      */
-    protected $urlRegEx = '/https?\:\/\/[^\"\'\<]+/i';
+    protected $urlRegEx = '/https?\:\\\?\/\\\?\/[^\"\'\<]+/i';
     /**
      * Maximum file size.
      *
@@ -103,7 +103,7 @@ class LocalCache
     /**
      * Returns a url to a cached file.
      *
-     * @param $url
+     * @param string $url
      *
      * @return string
      */
@@ -113,12 +113,19 @@ class LocalCache
             return $url;
         }
 
+        $cacheObject = $this->cacheObjects[$url];
+
         // External URL, contains a slash
-        if (strpos((string)$this->cacheObjects[$url], '/') !== false) {
-            return $this->cacheObjects[$url];
+        if (strpos((string)$cacheObject, '/') !== false) {
+            return $cacheObject;
         }
 
-        return (string)$this->baseUrl . '/' . $this->cacheObjects[$url];
+        $fullUrl = (string)$this->baseUrl . '/' . $cacheObject;
+        if($cacheObject->getUrl()->escape === true) {
+            $fullUrl = str_replace('/', '\/', $fullUrl);
+        }
+
+        return $fullUrl;
     }
 
     /**
@@ -191,6 +198,7 @@ class LocalCache
     private function replaceUrls($html)
     {
         preg_match_all($this->urlRegEx, $html, $matches);
+
         foreach ($matches[0] as $url) {
             $html = str_replace($url, $this->getUrl($url), $html);
         }
