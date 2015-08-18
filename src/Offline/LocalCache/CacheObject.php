@@ -141,6 +141,16 @@ class CacheObject
     }
 
     /**
+     * Returns the CacheObject's URL.
+     *
+     * @return string
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    /**
      * Checks if the CacheObject's TTL has expired.
      *
      * @return bool

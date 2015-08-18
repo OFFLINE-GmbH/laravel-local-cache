@@ -18,10 +18,22 @@ class Url
     protected $url;
 
     /**
+     * Whether or not the URL has to be escaped.
+     *
+     * @var bool
+     */
+    public $escape;
+
+    /**
      * @param $url
      */
     public function __construct($url)
     {
+        if(strpos($url, '\/') !== false) {
+            $this->escape = true;
+            $url = str_replace('\/', '/', $url);
+        }
+
         if ( ! filter_var($url, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException("${url} is not a valid url");
         }
