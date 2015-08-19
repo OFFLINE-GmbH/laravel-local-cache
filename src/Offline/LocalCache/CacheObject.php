@@ -35,6 +35,12 @@ class CacheObject
      */
     protected $objectUrl;
     /**
+     * Cached http header of remote file.
+     *
+     * @var string
+     */
+    protected $httpHeader = null;
+    /**
      * Maximum file size.
      *
      * @var int
@@ -49,9 +55,9 @@ class CacheObject
      */
     public function __construct(Url $url, Ttl $ttl, $basePath, $maxFileSize)
     {
-        $this->url      = $url;
-        $this->ttl      = $ttl;
-        $this->basePath = rtrim($basePath, '/');
+        $this->url         = $url;
+        $this->ttl         = $ttl;
+        $this->basePath    = rtrim($basePath, '/');
         $this->maxFileSize = $maxFileSize;
 
         $this->download();
@@ -161,8 +167,7 @@ class CacheObject
             return false;
         }
 
-        // TTL has expired
-        if (time() - filemtime($this->getCachePath()) >= $this->ttl->inSeconds()) {
+        if ($this->ttlHasExpired() || $this->lastModifiedDateIsNewer()) {
             $this->remove();
 
             return false;
@@ -179,7 +184,11 @@ class CacheObject
      */
     private function downloadRemoteFile()
     {
-        if ($this->getRemoteFileSize($this->url) > $this->maxFileSize) {
+        if ($this->isValid()) {
+            return [$this->getContents(), true];
+        }
+
+        if ($this->getRemoteFileSize() > $this->maxFileSize) {
             return [null, false];
         }
 
@@ -202,28 +211,14 @@ class CacheObject
     /**
      * Returns the size of a file without downloading it, or -1 if the file
      * size could not be determined.
-     *
-     * @param $url
-     *
      * @return int
      */
-    function getRemoteFileSize($url)
+    function getRemoteFileSize()
     {
 
         $result = -1;
 
-        $curl = curl_init($url);
-
-        // Issue a HEAD request and follow any redirects.
-        curl_setopt($curl, CURLOPT_NOBODY, true);
-        curl_setopt($curl, CURLOPT_HEADER, true);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-
-        $data = curl_exec($curl);
-        curl_close($curl);
-
-        if ($data) {
+        if ($data = $this->getHttpHeader()) {
             $content_length = "unknown";
             $status         = "unknown";
 
@@ -243,6 +238,60 @@ class CacheObject
         return $result;
     }
 
+    /**
+     * Checks the last modified time of the remote file.
+     *
+     * @return int
+     */
+    function getRemoteLastModified()
+    {
+        $result = 0;
+
+        if ($data = $this->getHttpHeader()) {
+            $lastModified = 0;
+            $status       = "unknown";
+
+            if (preg_match("/^HTTP\/1\.[01] (\d\d\d)/", $data, $matches)) {
+                $status = (int)$matches[1];
+            }
+            if (preg_match("/Last-Modified: ([^\\r?\\n]*)/", $data, $matches)) {
+                $lastModified = strtotime($matches[1]);
+            }
+
+            if ($status == 200 || ($status > 300 && $status <= 308)) {
+                $result = $lastModified;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns the remote file header.
+     * @return mixed
+     */
+    private function getHttpHeader()
+    {
+
+        if ($this->httpHeader !== null) {
+            return $this->httpHeader;
+        }
+
+        $curl = curl_init($this->url);
+
+        // Issue a HEAD request and follow any redirects.
+        curl_setopt($curl, CURLOPT_NOBODY, true);
+        curl_setopt($curl, CURLOPT_HEADER, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+        $data = curl_exec($curl);
+        curl_close($curl);
+
+        $this->httpHeader = $data;
+
+        return $data;
+    }
 
     /**
      * @return string
@@ -251,5 +300,22 @@ class CacheObject
     {
         return (string)$this->objectUrl;
     }
+
+    /**
+     * @return bool
+     */
+    private function ttlHasExpired()
+    {
+        return time() - filemtime($this->getCachePath()) >= $this->ttl->inSeconds();
+    }
+
+    /**
+     * @return bool
+     */
+    private function lastModifiedDateIsNewer()
+    {
+        return filemtime($this->getCachePath()) < $this->getRemoteLastModified($this->url);
+    }
+
 
 }
