@@ -67,7 +67,7 @@ class LocalCache
         $this->baseUrl     = $baseUrl;
         $this->maxFileSize = $maxFileSize;
 
-        $this->cleanUp();
+        // $this->cleanUp();
     }
 
     /**
