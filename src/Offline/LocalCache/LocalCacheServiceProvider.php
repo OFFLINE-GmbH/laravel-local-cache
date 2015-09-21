@@ -66,13 +66,18 @@ class LocalCacheServiceProvider extends ServiceProvider
             $route   = $this->app->config->get('localcache.route', 'cache');
             $storage = $this->app['LocalCache']->getCachePath();
 
+
             $this->mimeMap = MimeMap::readMapFile($storage . '/mimeMap.json');
             Route::get('/' . $route . '/{hash}', function ($hash) use ($storage) {
+
+                $filePath = $storage . '/' . $hash;
+                if ( ! file_exists($filePath)) {
+                    return new Response("$filePath not found.", 404);
+                }
+
                 return (
-                new Response(
-                    file_get_contents($storage . '/' . $hash)
-                    , 200)
-                )->header('Content-Type', $this->getMime($hash));
+                new Response(file_get_contents($filePath), 200))
+                    ->header('Content-Type', $this->getMime($hash));
             });
         }
     }
