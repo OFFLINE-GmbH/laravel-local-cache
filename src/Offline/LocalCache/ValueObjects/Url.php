@@ -23,23 +23,35 @@ class Url
      * @var bool
      */
     public $escape;
+    /**
+     * Whether or not the URL has to be replaced.
+     *
+     * @var bool
+     */
+    public $replace = true;
 
     /**
      * @param $url
      */
     public function __construct($url)
     {
-        if(strpos($url, '\/') !== false) {
+        if (strpos($url, '\/') !== false) {
             $this->escape = true;
-            $url = str_replace('\/', '/', $url);
+            $url          = str_replace('\/', '/', $url);
         }
 
-        if ( ! filter_var($url, FILTER_VALIDATE_URL)) {
-            throw new InvalidArgumentException("${url} is not a valid url");
+        $checkUrl = $url;
+        if (starts_with($url, '@')) {
+            $checkUrl      = substr($url, 1);
+            $this->replace = false;
         }
-        $this->url = $url;
+
+        if ( ! filter_var($checkUrl, FILTER_VALIDATE_URL)) {
+            throw new InvalidArgumentException("${checkUrl} is not a valid url");
+        }
+
+        $this->url = $checkUrl;
     }
-
 
     /**
      * @return string

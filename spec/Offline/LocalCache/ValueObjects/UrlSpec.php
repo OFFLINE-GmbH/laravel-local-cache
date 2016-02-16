@@ -10,6 +10,7 @@ class UrlSpec extends ObjectBehavior
 {
     const validURL = 'http://www.offlinegmbh.ch/file.jpg';
     const invalidURL = 'http:/invalid/url';
+    const escapedUrl = '@http://escaped';
 
     function let()
     {
@@ -30,5 +31,11 @@ class UrlSpec extends ObjectBehavior
     function it_returns_a_hash()
     {
         $this->toHash()->shouldReturn(md5(static::validURL));
+    }
+
+    function it_recognises_escaped_url()
+    {
+        $this->beConstructedWith(self::escapedUrl);
+        $this->__toString()->shouldBe("http://escaped");
     }
 }

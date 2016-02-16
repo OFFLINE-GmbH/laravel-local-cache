@@ -36,11 +36,13 @@ this location).
 
 To cache a file use the `getCachedHtml` method. The file will be downloaded and stored to disk.
 The method returns the local URL for your file.
+
+```
+$string = 'http://www.offlinegmbh.ch/file.jpg';
     
-    $string = 'http://www.offlinegmbh.ch/file.jpg';
-    
-    // returns http://yoursite/cache/{hash}
-    var_dump(LocalCache::getCachedHtml($string));
+// returns http://yoursite/cache/{hash}
+var_dump(LocalCache::getCachedHtml($string));
+```
     
 By default, a `/cache/{hash}` route is generated which serves the file's contents with the correct mime type.
 To change the route, edit the `route` setting in `config/localcache.php`.
@@ -48,11 +50,20 @@ To change the route, edit the `route` setting in `config/localcache.php`.
 The `getCachedHtml` method works with any string that contains any number of URLs. It extracts and replaces the links 
 accordingly.
 
-    $string = '<p>http://www.offlinegmbh.ch/file.jpg</p><p>http://www.offlinegmbh.ch/file2.jpg</p>';
+```php
+$string = '<p>http://www.offlinegmbh.ch/file.jpg</p><p>http://www.offlinegmbh.ch/file2.jpg</p>';
     
-    // <p>http://yoursite/cache/{hash1}</p><p>http://yoursite/cache/{hash2}</p>
-    var_dump(LocalCache::getCachedHtml($string));
-    
+// <p>http://yoursite/cache/{hash1}</p><p>http://yoursite/cache/{hash2}</p>
+var_dump(LocalCache::getCachedHtml($string));
+```
+
+To prevent URLs from being cached, prefix them with a `@` symbol:
+
+```php
+$string = '<p>@http://dont-cache-me/file.jpg</p>';
+// <p>http://dont-cache-me/file.jpg</p>
+var_dump(LocalCache::getCachedHtml($string));
+```    
 ### Example Middleware
 
 This example middleware caches all external files referenced in your template and replaces 
