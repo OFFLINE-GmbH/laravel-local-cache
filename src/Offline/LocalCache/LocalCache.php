@@ -114,14 +114,21 @@ class LocalCache
         }
 
         $cacheObject = $this->cacheObjects[$url];
-
         // External URL, contains a slash
         if (strpos((string)$cacheObject, '/') !== false) {
             return $cacheObject;
         }
 
+        $urlObject = $cacheObject->getUrl();
+
+        // Return original URL for @-escaped objects
+        if($urlObject->replace === false) {
+            return (string)$urlObject;
+        }
+
         $fullUrl = (string)$this->baseUrl . '/' . $cacheObject;
-        if($cacheObject->getUrl()->escape === true) {
+
+        if($urlObject->escape === true) {
             $fullUrl = str_replace('/', '\/', $fullUrl);
         }
 
