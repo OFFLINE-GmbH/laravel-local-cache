@@ -184,6 +184,11 @@ class CacheObject
      */
     private function downloadRemoteFile()
     {
+
+        if ($this->url->replace === false) {
+            return ['', true];
+        }
+
         if ($this->isValid()) {
             return [$this->getContents(), true];
         }

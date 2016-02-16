@@ -39,7 +39,7 @@ class LocalCache
      *
      * @var string
      */
-    protected $urlRegEx = '/https?\:\\\?\/\\\?\/[^\"\'\<]+/i';
+    protected $urlRegEx = '/@?https?\:\\\?\/\\\?\/[^\"\'\<]+/i';
     /**
      * Maximum file size.
      *
@@ -161,7 +161,9 @@ class LocalCache
     {
         foreach (glob($this->getCachePath() . '/*') as $file) {
 
-            if(strpos('mimeMap.json', $file) !== false) continue;
+            if (strpos('mimeMap.json', $file) !== false) {
+                continue;
+            }
 
             if (time() - filemtime($file) >= $this->ttl->inSeconds()) {
                 @unlink($file);
