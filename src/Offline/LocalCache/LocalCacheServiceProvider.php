@@ -83,12 +83,16 @@ class LocalCacheServiceProvider extends ServiceProvider
     }
 
     /**
+     * Return the file's mime type.
+     * 
      * @param $hash
      *
      * @return string
      */
     private function getMime($hash)
     {
-        return array_key_exists($hash, $this->mimeMap) ? $this->mimeMap[$hash] : 'application/octet-stream';
+        return is_array($this->mimeMap) && array_key_exists($hash, $this->mimeMap)
+            ? $this->mimeMap[$hash]
+            : 'application/octet-stream';
     }
 }
