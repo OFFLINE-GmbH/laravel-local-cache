@@ -2,12 +2,12 @@
   "name": "offline/laravel-local-cache",
   "description": "Cache remote files locally in Laravel",
   "require": {
-    "php": ">=5.4.0",
-    "illuminate/support": "~5.0",
+    "php": "^7.1.3",
+    "illuminate/support": "~5.8",
     "ext-curl": "*"
   },
   "require-dev": {
-    "phpspec/phpspec": "~2.0",
+    "phpspec/phpspec": "~4.3.2",
     "mikey179/vfsStream": "dev-master"
   },
   "autoload": {
@@ -20,6 +20,10 @@
     {
       "name": "Tobias Kündig",
       "email": "tobias.kuendig@offlinegmbh.ch"
+    },
+    {
+      "name": "Abelouahab Djoudi",
+      "email": "info@djoudi.net"
     }
   ]
 }
